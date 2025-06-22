@@ -1,54 +1,28 @@
+from datetime import datetime, time, timedelta
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import Body, FastAPI
-from pydantic import BaseModel
 
 app = FastAPI()
 
 
-class Item(BaseModel):
-    name: str
-    description: str | None = None
-    price: float
-    tax: float | None = None
-
-
 @app.put("/items/{item_id}")
-async def update_item(
-    *,
-    item_id: int,
-    item: Annotated[
-        Item,
-        Body(
-            openapi_examples={
-                "normal": {
-                    "summary": "A normal example",
-                    "description": "A **normal** item works correctly.",
-                    "value": {
-                        "name": "Foo",
-                        "description": "A very nice Item",
-                        "price": 35.4,
-                        "tax": 3.2,
-                    },
-                },
-                "converted": {
-                    "summary": "An example with converted data",
-                    "description": "FastAPI can convert price `strings` to actual `numbers` automatically",
-                    "value": {
-                        "name": "Bar",
-                        "price": "35.4",
-                    },
-                },
-                "invalid": {
-                    "summary": "Invalid data is rejected with an error",
-                    "value": {
-                        "name": "Baz",
-                        "price": "thirty five point four",
-                    },
-                },
-            },
-        ),
-    ],
+async def read_items(
+    item_id: UUID,
+    start_datetime: Annotated[datetime, Body()],
+    end_datetime: Annotated[datetime, Body()],
+    process_after: Annotated[timedelta, Body()],
+    repeat_at: Annotated[time | None, Body()] = None,
 ):
-    results = {"item_id": item_id, "item": item}
-    return results
+    start_process = start_datetime + process_after
+    duration = end_datetime - start_process
+    return {
+        "item_id": item_id,
+        "start_datetime": start_datetime,
+        "end_datetime": end_datetime,
+        "process_after": process_after,
+        "repeat_at": repeat_at,
+        "start_process": start_process,
+        "duration": duration,
+    }

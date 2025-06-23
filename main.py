@@ -1,19 +1,25 @@
-from typing import Annotated
-
-from fastapi import FastAPI, Header
+from fastapi import FastAPI
 from pydantic import BaseModel
 
 app = FastAPI()
 
 
-class CommonHeaders(BaseModel):
-    host: str
-    save_data: bool
-    if_modified_since: str | None = None
-    traceparent: str | None = None
-    x_tag: list[str] = []
+class Item(BaseModel):
+    name: str
+    description: str | None = None
+    price: float
+    tax: float | None = None
+    tags: list[str] = []
+
+
+@app.post("/items/")
+async def create_item(item: Item) -> Item:
+    return item
 
 
 @app.get("/items/")
-async def read_items(headers: Annotated[CommonHeaders, Header()]):
-    return headers
+async def read_items() -> list[Item]:
+    return [
+        Item(name="Portal Gun", price=42.0),
+        Item(name="Plumbus", price=32.0),
+    ]

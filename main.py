@@ -1,25 +1,41 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
-from typing import Any
+from pydantic import BaseModel, EmailStr
 
 app = FastAPI()
 
 
-class Item(BaseModel):
-    name: str
-    description: str | None = None
-    price: float
-    tax: float = 10.5
-    tags: list[str] = []
+class UserIn(BaseModel):
+    username: str
+    password: str
+    email: EmailStr
+    full_name: str | None = None
 
 
-items = {
-    "foo": {"name": "Foo", "price": 50.2},
-    "bar": {"name": "Bar", "description": "The bartenders", "price": 62, "tax": 20.2},
-    "baz": {"name": "Baz", "description": None, "price": 50.2, "tax": 10.5, "tags": []},
-}
+class UserOut(BaseModel):
+    username: str
+    email: EmailStr
+    full_name: str | None = None
 
 
-@app.get("/items/{item_id}", response_model=Item, response_model_exclude_unset=True)
-async def read_item(item_id: str) -> Any:
-    return items[item_id]
+class UserInDB(BaseModel):
+    username: str
+    hashed_password: str
+    email: EmailStr
+    full_name: str | None = None
+
+
+def fake_password_hasher(raw_password: str):
+    return "supersecret" + raw_password
+
+
+def fake_save_user(user_in: UserIn):
+    hashed_password = fake_password_hasher(user_in.password)
+    user_in_db = UserInDB(**user_in.model_dump(), hashed_password=hashed_password)
+    print("User saved! ..not really")
+    return user_in_db
+
+
+@app.post("/user/", response_model=UserOut)
+async def create_user(user_in: UserIn):
+    user_saved = fake_save_user(user_in)
+    return user_saved

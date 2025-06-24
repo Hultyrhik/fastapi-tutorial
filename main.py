@@ -1,27 +1,29 @@
 from typing import Annotated
 
-from fastapi import Depends
+from fastapi import Depends, FastAPI, HTTPException
+
+app = FastAPI()
 
 
-async def dependency_a():
-    dep_a = generate_dep_a()
+class InternalError(Exception):
+    pass
+
+
+def get_username():
     try:
-        yield dep_a
-    finally:
-        dep_a.close()
+        yield "Rick"
+    except InternalError:
+        print("Oops, we didn't raise again, Britney 😱")
 
 
-async def dependency_b(dep_a: Annotated[DepA, Depends(dependency_a)]):
-    dep_b = generate_dep_b()
-    try:
-        yield dep_b
-    finally:
-        dep_b.close(dep_a)
-
-
-async def dependency_c(dep_b: Annotated[DepB, Depends(dependency_b)]):
-    dep_c = generate_dep_c()
-    try:
-        yield dep_c
-    finally:
-        dep_c.close(dep_b)
+@app.get("/items/{item_id}")
+def get_item(item_id: str, username: Annotated[str, Depends(get_username)]):
+    if item_id == "portal-gun":
+        raise InternalError(
+            f"The portal gun is too dangerous to be owned by {username}"
+        )
+    if item_id != "plumbus":
+        raise HTTPException(
+            status_code=404, detail="Item not found, there's only a plumbus here"
+        )
+    return item_id

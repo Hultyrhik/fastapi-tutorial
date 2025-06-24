@@ -1,8 +1,5 @@
-from typing import Annotated
-
 from fastapi import Depends, FastAPI, Header, HTTPException
-
-app = FastAPI()
+from typing_extensions import Annotated
 
 
 async def verify_token(x_token: Annotated[str, Header()]):
@@ -16,6 +13,14 @@ async def verify_key(x_key: Annotated[str, Header()]):
     return x_key
 
 
-@app.get("/items/", dependencies=[Depends(verify_token), Depends(verify_key)])
+app = FastAPI(dependencies=[Depends(verify_token), Depends(verify_key)])
+
+
+@app.get("/items/")
 async def read_items():
-    return [{"item": "Foo"}, {"item": "Bar"}]
+    return [{"item": "Portal Gun"}, {"item": "Plumbus"}]
+
+
+@app.get("/users/")
+async def read_users():
+    return [{"username": "Rick"}, {"username": "Morty"}]

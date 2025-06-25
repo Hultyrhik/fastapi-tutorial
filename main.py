@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-app = FastAPI(openapi_url="/api/v1/openapi.json")
+app = FastAPI(docs_url="/documentation", redoc_url=None)
 
 
 @app.get("/items/")

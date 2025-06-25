@@ -1,30 +1,41 @@
-from typing import Set, Union
-
-from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi import FastAPI, Request
 
 app = FastAPI()
 
 
-class Item(BaseModel):
-    name: str
-    description: Union[str, None] = None
-    price: float
-    tax: Union[float, None] = None
-    tags: Set[str] = set()
+def magic_data_reader(raw_body: bytes):
+    return {
+        "size": len(raw_body),
+        "content": {
+            "name": "Maaaagic",
+            "price": 42,
+            "description": "Just kiddin', no magic here. ✨",
+        },
+    }
 
 
-@app.post("/items/", response_model=Item, summary="Create an item")
-async def create_item(item: Item):
-    """
-    Create an item with all the information:
-
-    - **name**: each item must have a name
-    - **description**: a long description
-    - **price**: required
-    - **tax**: if the item doesn't have tax, you can omit this
-    - **tags**: a set of unique tag strings for this item
-    \f
-    :param item: User input.
-    """
-    return item
+@app.post(
+    "/items/",
+    openapi_extra={
+        "requestBody": {
+            "content": {
+                "application/json": {
+                    "schema": {
+                        "required": ["name", "price"],
+                        "type": "object",
+                        "properties": {
+                            "name": {"type": "string"},
+                            "price": {"type": "number"},
+                            "description": {"type": "string"},
+                        },
+                    }
+                }
+            },
+            "required": True,
+        },
+    },
+)
+async def create_item(request: Request):
+    raw_body = await request.body()
+    data = magic_data_reader(raw_body)
+    return data

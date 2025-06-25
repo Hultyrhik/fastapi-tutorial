@@ -1,8 +1,18 @@
 from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
-app = FastAPI(docs_url="/documentation", redoc_url=None)
+app = FastAPI()
 
 
-@app.get("/items/")
-async def read_items():
-    return [{"name": "Foo"}]
+@app.get("/")
+async def read_main():
+    return {"msg": "Hello World"}
+
+
+client = TestClient(app)
+
+
+def test_read_main():
+    response = client.get("/")
+    assert response.status_code == 200
+    assert response.json() == {"msg": "Hello World"}

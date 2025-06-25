@@ -1,38 +1,30 @@
-from typing import Annotated
+from typing import Set, Union
 
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI
 from pydantic import BaseModel
-
-fake_secret_token = "coneofsilence"
-
-fake_db = {
-    "foo": {"id": "foo", "title": "Foo", "description": "There goes my hero"},
-    "bar": {"id": "bar", "title": "Bar", "description": "The bartenders"},
-}
 
 app = FastAPI()
 
 
 class Item(BaseModel):
-    id: str
-    title: str
-    description: str | None = None
+    name: str
+    description: Union[str, None] = None
+    price: float
+    tax: Union[float, None] = None
+    tags: Set[str] = set()
 
 
-@app.get("/items/{item_id}", response_model=Item)
-async def read_main(item_id: str, x_token: Annotated[str, Header()]):
-    if x_token != fake_secret_token:
-        raise HTTPException(status_code=400, detail="Invalid X-Token header")
-    if item_id not in fake_db:
-        raise HTTPException(status_code=404, detail="Item not found")
-    return fake_db[item_id]
+@app.post("/items/", response_model=Item, summary="Create an item")
+async def create_item(item: Item):
+    """
+    Create an item with all the information:
 
-
-@app.post("/items/", response_model=Item)
-async def create_item(item: Item, x_token: Annotated[str, Header()]):
-    if x_token != fake_secret_token:
-        raise HTTPException(status_code=400, detail="Invalid X-Token header")
-    if item.id in fake_db:
-        raise HTTPException(status_code=409, detail="Item already exists")
-    fake_db[item.id] = item
+    - **name**: each item must have a name
+    - **description**: a long description
+    - **price**: required
+    - **tax**: if the item doesn't have tax, you can omit this
+    - **tags**: a set of unique tag strings for this item
+    \f
+    :param item: User input.
+    """
     return item

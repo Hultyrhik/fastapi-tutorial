@@ -33,7 +33,8 @@ def create_heroes():
 
 def select_heroes():
     with Session(engine) as session:  
-        statement = select(Hero).where(Hero.name == "Deadpond")
+        statement = select(Hero).where(Hero.name == "Deadpond").where(Hero.age == 48)
+
         results = session.exec(statement)
         for hero in results:
             print(hero)

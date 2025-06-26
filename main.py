@@ -33,9 +33,7 @@ def create_heroes():
 
 def select_heroes():
     with Session(engine) as session:  
-        statement = select(Hero)  
-        results = session.exec(statement)  
-        heroes = results.all()
+        heroes = session.exec(select(Hero)).all()
         print(heroes)
     
 

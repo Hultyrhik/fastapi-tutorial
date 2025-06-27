@@ -41,9 +41,7 @@ def create_heroes():
 
 def select_heroes():
     with Session(engine) as session:
-        statement = select(Hero).where(Hero.id == 1)
-        results = session.exec(statement)
-        hero = results.first()
+        hero = session.get(Hero, 1)
         print("Hero:", hero)
 
 

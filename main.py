@@ -39,18 +39,32 @@ def create_heroes():
         session.commit()
 
 
-def select_heroes():
-    with Session(engine) as session:
-        statement = select(Hero).where(Hero.age > 32).offset(1).limit(2)
-        results = session.exec(statement)
-        heroes = results.all()
-        print(heroes)
+# def select_heroes():
+#     with Session(engine) as session:
+#         statement = select(Hero).where(Hero.name == "Spider-Boy")
+#         results = session.exec(statement)
+#         heroes = results.all()
+#         print(heroes)
 
+def update_heroes():
+    with Session(engine) as session:
+        statement = select(Hero).where(Hero.name == "Spider-Boy")
+        results = session.exec(statement)
+        hero = results.one()
+        print("Hero:", hero)
+
+        hero.age = 16
+
+        session.add(hero)
+        session.commit()
+        session.refresh(hero)
 
 def main():
     create_db_and_tables()
     create_heroes()
-    select_heroes()
+    # select_heroes()
+    update_heroes()
+    
 
 
 if __name__ == "__main__":

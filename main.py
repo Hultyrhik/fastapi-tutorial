@@ -1,10 +1,12 @@
-from sqlmodel import Field, Session, SQLModel, create_engine
+from sqlmodel import Relationship, Field, Session, SQLModel, create_engine
 
 
 class Team(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     name: str = Field(index=True)
     headquarters: str
+
+    heroes: list["Hero"] = Relationship(back_populates="team")
 
 
 class Hero(SQLModel, table=True):
@@ -14,7 +16,7 @@ class Hero(SQLModel, table=True):
     age: int | None = Field(default=None, index=True)
 
     team_id: int | None = Field(default=None, foreign_key="team.id")
-
+    team: Team | None = Relationship(back_populates="heroes")
 
 sqlite_file_name = "database.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"

@@ -1,4 +1,4 @@
-from sqlmodel import Field, Relationship, Session, SQLModel, create_engine
+from sqlmodel import Field, Relationship, Session, SQLModel, create_engine, select
 
 
 class Team(SQLModel, table=True):
@@ -91,9 +91,24 @@ def create_heroes():
         print("Preventers new hero:", hero_cap)
 
 
+def select_heroes():
+    with Session(engine) as session:
+        statement = select(Hero).where(Hero.name == "Spider-Boy")
+        result = session.exec(statement)
+        hero_spider_boy = result.one()
+
+        statement = select(Team).where(Team.id == hero_spider_boy.team_id)
+        result = session.exec(statement)
+        team = result.first()
+        print("Spider-Boy's team:", team)
+
+        print("Spider-Boy's team again:", hero_spider_boy.team)
+
+
 def main():
     create_db_and_tables()
     create_heroes()
+    select_heroes()
 
 
 if __name__ == "__main__":

@@ -2,6 +2,38 @@ from fastapi import Depends, FastAPI, HTTPException, Query
 from sqlmodel import Field, Relationship, Session, SQLModel, create_engine, select
 
 
+class RegionBase(SQLModel):
+    name: str
+
+
+class Region(RegionBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    cities: list["City"] = Relationship(back_populates="region")
+
+
+class RegionPublic(RegionBase):
+    id: int
+
+
+class CityBase(SQLModel):
+    name: str
+    region_id: int = Field(foreign_key="region.id")
+
+
+class City(CityBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    region: Region = Relationship(back_populates="cities")
+    heroes: list["Hero"] = Relationship(back_populates="city")
+
+
+class CityPublic(CityBase):
+    id: int
+
+
+class CityPublicWithRelations(CityPublic):
+    region: RegionPublic
+
+
 class TeamBase(SQLModel):
     name: str = Field(index=True)
     headquarters: str
@@ -33,12 +65,14 @@ class HeroBase(SQLModel):
     age: int | None = Field(default=None, index=True)
 
     team_id: int | None = Field(default=None, foreign_key="team.id")
+    city_id: int = Field(foreign_key="city.id")
 
 
 class Hero(HeroBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
     team: Team | None = Relationship(back_populates="heroes")
+    city: City = Relationship(back_populates="heroes")
 
 
 class HeroPublic(HeroBase):
@@ -58,6 +92,7 @@ class HeroUpdate(SQLModel):
 
 class HeroPublicWithTeam(HeroPublic):
     team: TeamPublic | None = None
+    city: CityPublicWithRelations
 
 
 class TeamPublicWithHeroes(TeamPublic):
@@ -89,13 +124,41 @@ def create_teams():
 
 def create_heroes():
     session = next(get_session())
-    db_model = Hero(name="Spider", secret_name="Pak", age=23, team_id=1)
-    db_model2 = Hero(name="Rust", secret_name="Tone", age=37, team_id=2)
-    db_model3 = Hero(name="Aqua", secret_name="Mor", age=42, team_id=1)
+    db_model = Hero(name="Spider", secret_name="Pak", age=23, team_id=1, city_id=1)
+    db_model2 = Hero(name="Rust", secret_name="Tone", age=37, team_id=2, city_id=2)
+    db_model3 = Hero(name="Aqua", secret_name="Mor", age=42, team_id=1, city_id=3)
     session.add(db_model)
     session.add(db_model2)
     session.add(db_model3)
     session.commit()
+
+
+def create_region():
+    session = next(get_session())
+    db_list: list[Region] = []
+    db_model = Region(name="Texas")
+    db_list.append(db_model)
+    db_model = Region(name="Washington")
+    db_list.append(db_model)
+    db_model = Region(name="Milwakee")
+    db_list.append(db_model)
+    for db_model in db_list:
+        session.add(db_model)
+        session.commit()
+
+
+def create_city():
+    session = next(get_session())
+    db_list: list[City] = []
+    db_model = City(name="Austin", region_id=1)
+    db_list.append(db_model)
+    db_model = City(name="Washington D.C", region_id=2)
+    db_list.append(db_model)
+    db_model = City(name="Wiskonsin", region_id=3)
+    db_list.append(db_model)
+    for db_model in db_list:
+        session.add(db_model)
+        session.commit()
 
 
 def get_session():
@@ -109,6 +172,8 @@ app = FastAPI()
 @app.on_event("startup")
 def on_startup():
     create_db_and_tables()
+    create_region()
+    create_city()
     create_teams()
     create_heroes()
 

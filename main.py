@@ -75,6 +75,29 @@ def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
 
 
+def create_teams():
+    generator = get_session()
+    session = next(generator)
+
+    db_model = Team(name="X-men", headquarters="House")
+    db_model2 = Team(name="Sinister six", headquarters="roof")
+    session.add(db_model)
+    session.add(db_model2)
+
+    session.commit()
+
+
+def create_heroes():
+    session = next(get_session())
+    db_model = Hero(name="Spider", secret_name="Pak", age=23, team_id=1)
+    db_model2 = Hero(name="Rust", secret_name="Tone", age=37, team_id=2)
+    db_model3 = Hero(name="Aqua", secret_name="Mor", age=42, team_id=1)
+    session.add(db_model)
+    session.add(db_model2)
+    session.add(db_model3)
+    session.commit()
+
+
 def get_session():
     with Session(engine) as session:
         yield session
@@ -86,6 +109,8 @@ app = FastAPI()
 @app.on_event("startup")
 def on_startup():
     create_db_and_tables()
+    create_teams()
+    create_heroes()
 
 
 @app.post("/heroes/", response_model=HeroPublic)
@@ -97,7 +122,7 @@ def create_hero(*, session: Session = Depends(get_session), hero: HeroCreate):
     return db_hero
 
 
-@app.get("/heroes/", response_model=list[HeroPublic])
+@app.get("/heroes/", response_model=list[HeroPublicWithTeam])
 def read_heroes(
     *,
     session: Session = Depends(get_session),

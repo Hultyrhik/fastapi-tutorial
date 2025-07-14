@@ -96,7 +96,7 @@ class HeroPublicWithTeam(HeroPublic):
 
 
 class TeamPublicWithHeroes(TeamPublic):
-    heroes: list[HeroPublic] = []
+    heroes: list[HeroPublicWithTeam] = []
 
 
 sqlite_file_name = "database.db"
@@ -240,7 +240,7 @@ def create_team(*, session: Session = Depends(get_session), team: TeamCreate):
     return db_team
 
 
-@app.get("/teams/", response_model=list[TeamPublic])
+@app.get("/teams/", response_model=list[TeamPublicWithHeroes])
 def read_teams(
     *,
     session: Session = Depends(get_session),

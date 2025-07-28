@@ -30,6 +30,14 @@ async def lifespan(app: FastAPI):
 # FastAPI app
 app = FastAPI(lifespan=lifespan)
 
+custom_endpoint_names = {
+    "create": "add",
+    "read": "fetch",
+    "update": "modify",
+    "delete": "remove",
+    "read_multi": "list",
+}
+
 # CRUD router setup
 item_router = crud_router(
     session=get_session,
@@ -38,6 +46,8 @@ item_router = crud_router(
     update_schema=ItemUpdateSchema,
     path="/items",
     tags=["Items"],
+    endpoint_names=custom_endpoint_names,
+    select_schema=ItemUpdateSchema,
 )
 
 app.include_router(item_router)

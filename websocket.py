@@ -129,6 +129,7 @@ async def websocket_endpoint(websocket: WebSocket, client_id: int):
         await manager.broadcast(f"Client #{client_id} left the chat")
 
 
+# WORKS!!!
 # select sum(case when age(datetime,lag) < interval '65 second' then age(datetime,lag) end) as interval from (
 # 	SELECT  *, lag(w.datetime,1 )
 # 	OVER(ORDER By w.datetime)
